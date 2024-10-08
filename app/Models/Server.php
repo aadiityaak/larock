@@ -11,8 +11,8 @@ class Server extends Model
     protected $table = 'tb_server';
     protected $primaryKey = 'id_server';
 
-    function project()
+    function webhost()
     {
-        return $this->belongsTo(MainProject::class, 'id_server');
+        return $this->belongsTo(Webhost::class, 'id_webhost', 'id_webhost');
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\KaryawanController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -26,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/billing', [BillingController::class, 'index'])->name('billing');
+
+    Route::post('/karyawan-by-ids', [KaryawanController::class, 'getKaryawanByIds'])->name('karyawan.byIds');
 });
 
 require __DIR__ . '/auth.php';

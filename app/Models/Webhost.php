@@ -11,9 +11,9 @@ class Webhost extends Model
     protected $table = 'tb_webhost';
     protected $primaryKey = 'id_webhost'; // Tentukan kunci utama tabel
 
-    function project()
+    function mainproject()
     {
-        return $this->belongsTo(Project::class, 'id_webhost');
+        return $this->belongsTo(MainProject::class, 'id_webhost');
     }
 
     function paket()
