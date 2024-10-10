@@ -19,19 +19,6 @@
                 :itemsPerPage="itemsPerPage"
                 :links="links"
               >
-                <!-- <template #trf="{ row }">
-                  <RupiahFormat :data="Number(row.trf) || 0"  />
-                </template>
-                <template #biaya="{ row }">
-                  <RupiahFormat :data="Number(row.biaya) || 0" />
-                </template>
-                <template #dibayar="{ row }">
-                  <RupiahFormat :data="Number(row.dibayar) || 0" />
-                </template> -->
-                <template #dikerjakan_oleh="{ row }">
-                  <DikerjakanOleh :data="row.dikerjakan_oleh" />
-                   <!-- {{ row.dikerjakan_oleh }} -->
-                </template> 
               </Table>
             </div>
           </div>
@@ -67,13 +54,13 @@ export default {
         { field: 'webhost.nama_web', label: 'Nama Website', sortable: true, class: 'sticky left-0 z-10' },
         { field: 'webhost.paket.paket', label: 'Paket', sortable: true },
         { field: 'deskripsi', label: 'Deskripsi', sortable: true },
-        { field: 'trf', label: 'Trf', sortable: true },
+        { field: 'trf', label: 'Trf', sortable: true, type: 'rupiah' },
         { field: 'tgl_masuk', label: 'Tanggal Masuk', sortable: true },
         { field: 'tgl_deadline', label: 'Tanggal Deadline', sortable: true },
-        { field: 'biaya', label: 'Biaya', sortable: true },
-        { field: 'dibayar', label: 'Dibayar', sortable: true },
-        { field: 'kurang', label: 'Kurang', sortable: true },
-        { field: 'saldo', label: 'Saldo', sortable: true },
+        { field: 'biaya', label: 'Biaya', sortable: true, type: 'rupiah' },
+        { field: 'dibayar', label: 'Dibayar', sortable: true, type: 'rupiah' },
+        { field: 'kurang', label: 'Kurang', sortable: true, type: 'rupiah' },
+        { field: 'saldo', label: 'Saldo', sortable: true, type: 'rupiah' },
         { field: 'webhost.hp', label: 'HP', sortable: true },
         { field: 'webhost.telegram', label: 'Telegram', sortable: true },
         { field: 'webhost.hpads', label: 'HP Ads', sortable: true },
