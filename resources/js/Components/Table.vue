@@ -1,4 +1,15 @@
 <template>
+        <div class="pagination mt-4 flex justify-between mx-4 mb-4">
+            <div>
+                <!-- loop pagination dari links -->
+                <div v-for="link in links" :key="link.label" class="inline">
+                    <a @click="changePage(link.url)" class="cursor-pointer mx-2 p-2 bg-gray-300 rounded">
+                        {{ link.label }}
+                    </a>
+                </div>
+
+            </div>
+        </div>
     <div class="data-table">
       <table class="min-w-full table-auto border-collapse border border-gray-200">
         <thead>
@@ -44,17 +55,8 @@
           </tr>
         </tbody>
       </table>
-      <div class="pagination mt-4 flex justify-between">
-        <div>
-          Page {{ currentPage }} of {{ pageCount }}
-        </div>
-        <div>
-          <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 mx-2 bg-gray-300 rounded disabled:opacity-50">Prev</button>
-          <span class="px-4 py-2">{{ currentPage }}</span>
-          <button @click="nextPage" :disabled="currentPage >= pageCount" class="px-4 py-2 mx-2 bg-gray-300 rounded disabled:opacity-50">Next</button>
-        </div>
-      </div>
     </div>
+
   </template>
   
   <script>
@@ -68,16 +70,20 @@
         type: Array,
         required: true,
       },
-      totalItems: {
-        type: Number,
-        required: true,
-      },
+    //   totalItems: {
+    //     type: Number,
+    //     required: true,
+    //   },
       currentPage: {
         type: Number,
         required: true,
       },
       itemsPerPage: {
         type: Number,
+        required: true,
+      },
+      links: {
+        type: Array,
         required: true,
       },
     },
@@ -88,43 +94,48 @@
       };
     },
     computed: {
-      pageCount() {
-        return Math.ceil(this.totalItems / this.itemsPerPage);
-      },
       sortedData() {
-        let data = this.data.slice();
+        let data = this.data;
   
-        // Sort data
-        if (this.sortKey) {
-          data.sort((a, b) => {
-            const modifier = this.sortOrder === 'asc' ? 1 : -1;
-            const aValue = this.getValue(a, this.sortKey);
-            const bValue = this.getValue(b, this.sortKey);
-            return (aValue < bValue ? -1 : 1) * modifier;
-          });
-        }
-        // Paginate data
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return data.slice(start, start + this.itemsPerPage);
+        // // Sort data
+        // if (this.sortKey) {
+        //   data.sort((a, b) => {
+        //     const modifier = this.sortOrder === 'asc' ? 1 : -1;
+        //     const aValue = this.getValue(a, this.sortKey);
+        //     const bValue = this.getValue(b, this.sortKey);
+        //     return (aValue < bValue ? -1 : 1) * modifier;
+        //   });
+        // }
+        // // Paginate data
+        // const start = (this.currentPage - 1) * this.itemsPerPage;
+        return data;
       },
+    },
+    mounted() {
+      console.log(this.data);
     },
     methods: {
       getValue(item, key) {
         if (!key) return '';
         return key.split('.').reduce((o, i) => (o ? o[i] : ''), item);
       },
-      sortBy(key) {
-        this.sortOrder = this.sortKey === key && this.sortOrder === 'asc' ? 'desc' : 'asc';
-        this.sortKey = key;
-      },
-      nextPage() {
-        if (this.currentPage < this.pageCount) {
-          this.$emit('update:currentPage', this.currentPage + 1);
-        }
-      },
-      prevPage() {
-        if (this.currentPage > 1) {
-          this.$emit('update:currentPage', this.currentPage - 1);
+    //   sortBy(key) {
+    //     this.sortOrder = this.sortKey === key && this.sortOrder === 'asc' ? 'desc' : 'asc';
+    //     this.sortKey = key;
+    //   },
+    //   nextPage() {
+    //     if (this.currentPage < this.pageCount) {
+    //       this.$emit('update:currentPage', this.currentPage + 1);
+    //     }
+    //   },
+    //   prevPage() {
+    //     if (this.currentPage > 1) {
+    //       this.$emit('update:currentPage', this.currentPage - 1);
+    //     }
+    //   },
+      changePage(url) {
+        if (url) {
+        this.$inertia.visit(url);
         }
       },
     },

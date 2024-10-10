@@ -14,11 +14,12 @@
               <Table 
                 :data="mainprojects.data" 
                 :columns="columns" 
-                :totalItems="mainprojects.total" 
+                :totalItems="totalItems" 
                 :currentPage="currentPage" 
                 :itemsPerPage="itemsPerPage"
+                :links="links"
               >
-                <template #trf="{ row }">
+                <!-- <template #trf="{ row }">
                   <RupiahFormat :data="Number(row.trf) || 0"  />
                 </template>
                 <template #biaya="{ row }">
@@ -26,10 +27,11 @@
                 </template>
                 <template #dibayar="{ row }">
                   <RupiahFormat :data="Number(row.dibayar) || 0" />
-                </template>
+                </template> -->
                 <template #dikerjakan_oleh="{ row }">
                   <DikerjakanOleh :data="row.dikerjakan_oleh" />
-                </template>
+                   <!-- {{ row.dikerjakan_oleh }} -->
+                </template> 
               </Table>
             </div>
           </div>
@@ -78,12 +80,16 @@ export default {
         { field: 'webhost.wa', label: 'WhatsApp', sortable: true },
         { field: 'webhost.email', label: 'Email', sortable: true },
         { field: 'dikerjakan_oleh', label: 'Dikerjakan Oleh', sortable: true },
-        { field: 'action', label: 'Action' },
+        // { field: 'action', label: 'Action' },
       ],
-      currentPage: this.mainprojects.current_page,
-      itemsPerPage: this.mainprojects.per_page,
-      totalItems: this.mainprojects.total,
+      currentPage: this.mainprojects.current_page || 1,
+      itemsPerPage: this.mainprojects.per_page || 100,
+      totalItems: this.mainprojects.total || 0,
+      links: this.mainprojects.links || [],
     };
+  },
+  mounted() {
+    // console.log(this.mainprojects);
   },
   watch: {
     mainprojects(newVal) {

@@ -5,14 +5,20 @@
           Showing page {{ mainprojects.current_page }} of {{ mainprojects.last_page }}
         </span>
         <div class="inline-flex items-center">
-          <button
+          <!-- <button
             @click="changePage(mainprojects.prev_page_url)"
             :disabled="!mainprojects.prev_page_url"
             class="bg-gray-300 text-gray-600 py-2 px-4 rounded-l hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
+          </button> -->
+          <button
+            @click="changePage(mainprojects.prev_page_url)"
+            class="bg-gray-300 text-gray-600 py-2 px-4 rounded-l hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
           </button>
-  
+
           <button
             @click="changePage(mainprojects.next_page_url)"
             :disabled="!mainprojects.next_page_url"

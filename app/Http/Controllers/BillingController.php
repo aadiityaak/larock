@@ -16,13 +16,7 @@ class BillingController extends Controller
             ->paginate($perPage);
 
         return Inertia::render('Billing/Index', [
-            'mainprojects' => [
-                'data' => $mainproject->items(),
-                'total' => $mainproject->total(), // Total number of entries
-                'current_page' => $mainproject->currentPage(),
-                'last_page' => $mainproject->lastPage(),
-                'per_page' => $mainproject->perPage(),
-            ],
+            'mainprojects' => $mainproject
         ]);
     }
 }
