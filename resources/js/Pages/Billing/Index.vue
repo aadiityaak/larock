@@ -1,24 +1,37 @@
 <template>
   <AuthenticatedLayout title="Billing">
     <template #header>
-      <h2 class="font-semibold text-xl text-gray-800 leading-tight">Billing</h2>
+      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        Billing
+      </h2>
     </template>
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-          <div class="overflow-x-auto">
-            <DataTable
-              :data="mainprojects.data"
-              :columns="columns"
-              :pagination="true"
-              :server-side="true"
-              :total-rows="totalRows" 
-              :current-page="currentPage" 
-              :rows-per-page="itemsPerPage"
-              @page-change="getMainProjects"
-              class="min-w-full divide-y divide-gray-200"
-            />
+          <div class="bg-white shadow-md rounded">
+            <div class="overflow-x-auto">
+              <Table 
+                :data="mainprojects.data" 
+                :columns="columns" 
+                :totalItems="mainprojects.total" 
+                :currentPage="currentPage" 
+                :itemsPerPage="itemsPerPage"
+              >
+                <template #trf="{ row }">
+                  <RupiahFormat :data="Number(row.trf) || 0"  />
+                </template>
+                <template #biaya="{ row }">
+                  <RupiahFormat :data="Number(row.biaya) || 0" />
+                </template>
+                <template #dibayar="{ row }">
+                  <RupiahFormat :data="Number(row.dibayar) || 0" />
+                </template>
+                <template #dikerjakan_oleh="{ row }">
+                  <DikerjakanOleh :data="row.dikerjakan_oleh" />
+                </template>
+              </Table>
+            </div>
           </div>
         </div>
       </div>
@@ -28,10 +41,10 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import DataTable from 'datatables.net-vue3';
-import DataTablesCore from 'datatables.net';
+import RupiahFormat from '@/Components/RupiahFormat.vue';
+import DikerjakanOleh from '@/Components/DikerjakanOleh.vue';
+import Table from '@/Components/Table.vue';
 
-DataTable.use(DataTablesCore);
 export default {
   props: {
     mainprojects: {
@@ -41,74 +54,47 @@ export default {
   },
   components: {
     AuthenticatedLayout,
-    DataTable,
+    RupiahFormat,
+    DikerjakanOleh,
+    Table,
   },
   data() {
     return {
       columns: [
-        { 
-          data: null, 
-          title: 'No', 
-          render: (data, type, row, meta) => this.getRowNumber(meta),
-        },
-        { data: 'jenis', title: 'Jenis' },
-        { data: 'webhost.nama_web', title: 'Nama Web' },
-        { 
-          data: 'webhost.paket.paket', 
-          title: 'Webhost Paket', 
-          render: (data, type, row) => row.webhost?.paket?.paket || "-" 
-        },
-        { data: 'deskripsi', title: 'Deskripsi' },
-        { 
-          data: 'trf', 
-          title: 'Transfer', 
-          render: (data) => this.rupiahFormat(data),
-        },
-        { data: 'tgl_masuk', title: 'Tanggal Masuk' },
-        { data: 'tgl_deadline', title: 'Tanggal Deadline' },
+        { field: 'jenis', label: 'Jenis', sortable: true },
+        { field: 'webhost.nama_web', label: 'Nama Website', sortable: true, class: 'sticky left-0 z-10' },
+        { field: 'webhost.paket.paket', label: 'Paket', sortable: true },
+        { field: 'deskripsi', label: 'Deskripsi', sortable: true },
+        { field: 'trf', label: 'Trf', sortable: true },
+        { field: 'tgl_masuk', label: 'Tanggal Masuk', sortable: true },
+        { field: 'tgl_deadline', label: 'Tanggal Deadline', sortable: true },
+        { field: 'biaya', label: 'Biaya', sortable: true },
+        { field: 'dibayar', label: 'Dibayar', sortable: true },
+        { field: 'kurang', label: 'Kurang', sortable: true },
+        { field: 'saldo', label: 'Saldo', sortable: true },
+        { field: 'webhost.hp', label: 'HP', sortable: true },
+        { field: 'webhost.telegram', label: 'Telegram', sortable: true },
+        { field: 'webhost.hpads', label: 'HP Ads', sortable: true },
+        { field: 'webhost.wa', label: 'WhatsApp', sortable: true },
+        { field: 'webhost.email', label: 'Email', sortable: true },
+        { field: 'dikerjakan_oleh', label: 'Dikerjakan Oleh', sortable: true },
+        { field: 'action', label: 'Action' },
       ],
-      // Menetapkan nilai default dari props mainprojects untuk current page, total rows, dan items per page
-      currentPage: this.mainprojects.current_page || 1,
-      itemsPerPage: this.mainprojects.per_page || 150,
-      totalRows: this.mainprojects.total || 0,
-      tableData: this.mainprojects.data || [], // Data tabel harus diambil dari mainprojects.data
+      currentPage: this.mainprojects.current_page,
+      itemsPerPage: this.mainprojects.per_page,
+      totalItems: this.mainprojects.total,
     };
   },
   watch: {
-    // Memperbarui data setiap kali props mainprojects berubah
-    mainprojects: {
-      immediate: true,
-      handler(newVal) {
-        console.log('Updated mainprojects:', newVal);
-        this.currentPage = newVal.current_page || 1;
-        this.itemsPerPage = newVal.per_page || 150;
-        this.totalRows = newVal.total || 0;
-        this.tableData = newVal.data || [];
-      },
+    mainprojects(newVal) {
+      this.currentPage = newVal.current_page;
+      this.totalItems = newVal.total;
+      this.itemsPerPage = newVal.per_page;
     },
-  },
-  methods: {
-    getRowNumber(meta) {
-      // Menghitung nomor urut berdasarkan pagination
-      return (this.currentPage - 1) * this.itemsPerPage + meta.row + 1;
-    },
-    getMainProjects(page = 1) {
-      // Memperbarui currentPage dan mengirim request untuk mendapatkan data baru
-      this.currentPage = page;
-      this.$inertia.get(route('billing'), { page });
-    },
-    rupiahFormat(amount) {
-      // Format untuk nilai rupiah
-      return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount);
-    },
-  },
-  mounted() {
-    console.log('MainProjects Data:', this.mainprojects); // Cek apakah data dari props sudah benar
   },
 };
 </script>
+
+<style scoped>
+/* Tambahkan gaya yang diperlukan di sini */
+</style>

@@ -3,7 +3,7 @@
       <div v-if="loading">Loading...</div>
       <div v-else>
         <div v-for="person in processedKaryawan" :key="person.id_karyawan">
-          {{ person.nama }} bobot{{ person.bobot }}
+          {{ person.nama }} ({{ person.bobot }})
         </div>
       </div>
     </div>
@@ -12,7 +12,7 @@
   <script>
   export default {
     props: {
-      opl: {
+      data: {
         type: String,
         required: true
       }
@@ -25,7 +25,7 @@
     },
     computed: {
         processedKaryawan() {
-        const pls = this.opl.split(',');
+        const pls = this.data.split(',');
         return pls.filter(pl => pl).map(pl => {
             const cs = pl.indexOf('[');
             const id_karyawan = parseInt(pl.substring(0, cs)); // Konversi ke integer
@@ -42,7 +42,7 @@
     },
     methods: {
       async fetchKaryawanData() {
-        const ids = this.opl.split(',').filter(pl => pl).map(pl => {
+        const ids = this.data.split(',').filter(pl => pl).map(pl => {
           const cs = pl.indexOf('[');
           return pl.substring(0, cs);
         });
