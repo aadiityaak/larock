@@ -10,16 +10,56 @@
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
           <div class="bg-white shadow-md rounded">
+
+            <div class="m-2">
+              <div class="flex">
+                <div class="m-2">
+                  <div class="flex relative">
+                    <input
+                      id="cari"
+                      name="cari"
+                      type="text"
+                      v-model="searchQuery"
+                      placeholder="Cari Project"
+                      @input="searchData"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+
+                    <button
+                      v-if="searchQuery"
+                      @click="clearSearch"
+                      class="bg-red-500 text-white rounded-md p-2 ml-2 top-0 absolute right-0 border border-red-500"
+                      aria-label="Clear search"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="overflow-x-auto">
               <Table 
-                :data="mainprojects.data" 
+                :data="filteredData" 
                 :columns="columns" 
                 :totalItems="totalItems" 
                 :currentPage="currentPage" 
                 :itemsPerPage="itemsPerPage"
                 :links="links"
-              >
-              </Table>
+              />
             </div>
           </div>
         </div>
@@ -30,8 +70,6 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import RupiahFormat from '@/Components/RupiahFormat.vue';
-import DikerjakanOleh from '@/Components/DikerjakanOleh.vue';
 import Table from '@/Components/Table.vue';
 
 export default {
@@ -40,15 +78,18 @@ export default {
       type: Object,
       required: true,
     },
+    cari: {
+      type: String,
+      default: null
+    }
   },
   components: {
     AuthenticatedLayout,
-    RupiahFormat,
-    DikerjakanOleh,
     Table,
   },
   data() {
     return {
+      searchQuery: this.cari,
       columns: [
         { field: 'jenis', label: 'Jenis', sortable: true },
         { field: 'webhost.nama_web', label: 'Nama Website', sortable: true, class: 'sticky left-0 z-10' },
@@ -74,8 +115,28 @@ export default {
       links: this.mainprojects.links || [],
     };
   },
-  mounted() {
-    // console.log(this.mainprojects);
+  methods: {
+    searchData() {
+        this.$inertia.get(route('billing'), { cari: this.searchQuery, perPage: this.itemsPerPage });
+      },
+      clearSearch() {
+        this.searchQuery = '';
+        this.$inertia.get(route('billing'), { perPage: this.itemsPerPage });
+      },
+      fetchPage(page) {
+        this.$inertia.get(route('billing'), { cari: this.searchQuery, perPage: this.itemsPerPage, page });
+      },
+  },
+  computed: {
+    filteredData() {
+      if (!this.searchQuery) {
+        return this.mainprojects.data;
+      }
+      return this.mainprojects.data.filter(item => {
+        return item.deskripsi.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+               item.webhost.nama_web.toLowerCase().includes(this.searchQuery.toLowerCase());
+      });
+    },
   },
   watch: {
     mainprojects(newVal) {
@@ -83,10 +144,6 @@ export default {
       this.totalItems = newVal.total;
       this.itemsPerPage = newVal.per_page;
     },
-  },
+  }
 };
 </script>
-
-<style scoped>
-/* Tambahkan gaya yang diperlukan di sini */
-</style>

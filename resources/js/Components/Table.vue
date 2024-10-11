@@ -4,11 +4,11 @@
         <table class="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
             <tr class="bg-gray-200 text-gray-600">
-              <th class="py-3 px-6">No</th>
+              <th class="py-3 px-2">No</th>
               <th
                 v-for="column in columns"
                 :key="column.field"
-                class="py-3 px-3 text-left border-b border-gray-200 bg-gray-200 text-gray-600 whitespace-nowrap"
+                class="py-3 px-2 text-left border-b border-gray-200 bg-gray-200 text-gray-600 whitespace-nowrap"
                 :class="column.class"
               >
               <span class="flex items-center cursor-pointer" @click="column.sortable && sortBy(column.field)">
@@ -26,7 +26,7 @@
               :key="item.id"
               class="hover:bg-gray-100 border-b border-gray-200 group bg-white"
             >
-              <td class="py-1 px-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+              <td class="py-1 px-2">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
               <td
                 v-for="column in columns"
                 :key="column.field"
@@ -35,8 +35,8 @@
               >
                 <div v-if="column.field === 'karyawan_data'">
                   <span v-if="item.karyawan_data.length">
-                    <span v-for="(karyawan, index) in item.karyawan_data" :key="index">
-                      {{ karyawan.nama }} - {{ karyawan.bobot }}<span v-if="index < item.karyawan_data.length - 1">, </span>
+                    <span v-for="(karyawan, kIndex) in item.karyawan_data" :key="kIndex">
+                      {{ karyawan.nama }} (Bobot: {{ karyawan.bobot }})<span v-if="kIndex < item.karyawan_data.length - 1">, </span>
                     </span>
                   </span>
                   <span v-else>Tidak ada karyawan</span>
@@ -47,7 +47,6 @@
               </td>
             </tr>
           </tbody>
-
         </table>
       </div>
 
@@ -151,7 +150,7 @@
       },
     },
     mounted() {
-      console.log(this);
+      // console.log(this);
     },
   };
   </script>
