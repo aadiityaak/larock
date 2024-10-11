@@ -33,16 +33,21 @@
                 class="py-3 px-2 text-left border-b border-gray-200 bg-white max-w-[300px] group-hover:bg-gray-100 text-gray-600 truncate hover:whitespace-normal hover:overflow-visible"
                 :class="column.class"
               >
-                <div v-if="$slots[column.field]" class="truncate hover:whitespace-normal hover:overflow-visible">
-                  <slot :name="column.field" :row="item"></slot>
+                <div v-if="column.field === 'karyawan_data'">
+                  <span v-if="item.karyawan_data.length">
+                    <span v-for="(karyawan, index) in item.karyawan_data" :key="index">
+                      {{ karyawan.nama }} - {{ karyawan.bobot }}<span v-if="index < item.karyawan_data.length - 1">, </span>
+                    </span>
+                  </span>
+                  <span v-else>Tidak ada karyawan</span>
                 </div>
                 <div v-else class="truncate hover:whitespace-normal hover:overflow-visible">
                   {{ formatValue(item, column) }}
                 </div>
               </td>
-
             </tr>
           </tbody>
+
         </table>
       </div>
 
