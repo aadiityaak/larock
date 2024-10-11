@@ -13,7 +13,10 @@ class BillingController extends Controller
     {
         // Get the search term from the request
         $searchTerm = $request->input('cari', '');
+        $searchJenis = $request->input('jenis', '');
         $perPage = $request->input('perPage', 150);
+        $searchStartDate = $request->input('startDate', '');
+        $searchEndDate = $request->input('endDate', '');
 
         // Query the MainProject model with eager loading and search functionality
         $mainprojects = MainProject::with(['webhost', 'webhost.paket', 'webhost.server'])
@@ -24,9 +27,19 @@ class BillingController extends Controller
                     });
                 });
             })
+            ->when($searchJenis, function ($query) use ($searchJenis) {
+                $query->where('jenis', $searchJenis);
+            })
+            ->when($searchStartDate, function ($query) use ($searchStartDate) {
+                $query->whereDate('tgl_masuk', '>=', $searchStartDate);
+            })
+            ->when($searchEndDate, function ($query) use ($searchEndDate) {
+                $query->whereDate('tgl_masuk', '<=', $searchEndDate);
+            })
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
+        $jenis_list = MainProject::select('jenis')->distinct()->get()->pluck('jenis');
         $list_paket = Paket::all();
 
         // Add employee names and their workload to each project
@@ -37,8 +50,11 @@ class BillingController extends Controller
 
         return Inertia::render('Billing/Index', [
             'mainprojects' => $mainprojects,
-            'cari' => $searchTerm,
-            'list_paket' => $list_paket
+            'qcari' => $searchTerm,
+            'jenispaket' => $jenis_list,
+            'qjenis' => $searchJenis,
+            'listpaket' => $list_paket,
+            'qdate' => [$searchStartDate, $searchEndDate],
         ]);
     }
 }

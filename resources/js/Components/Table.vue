@@ -36,7 +36,7 @@
                 <div v-if="column.field === 'karyawan_data'">
                   <span v-if="item.karyawan_data.length">
                     <span v-for="(karyawan, kIndex) in item.karyawan_data" :key="kIndex">
-                      {{ karyawan.nama }} (Bobot: {{ karyawan.bobot }})<span v-if="kIndex < item.karyawan_data.length - 1">, </span>
+                      {{ karyawan.nama }} {{ karyawan.bobot }}%<span v-if="kIndex < item.karyawan_data.length - 1">, </span>
                     </span>
                   </span>
                   <span v-else>Tidak ada karyawan</span>
