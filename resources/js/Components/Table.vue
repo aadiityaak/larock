@@ -1,14 +1,5 @@
 <template>
     <div>
-      <div class="pagination mt-4 flex justify-between mx-4 mb-4">
-        <div>
-          <div v-for="link in links" :key="link.label" class="inline">
-            <a @click="changePage(link.url)" class="cursor-pointer mx-2 p-2 bg-gray-300 rounded">
-              {{ link.label }}
-            </a>
-          </div>
-        </div>
-      </div>
       <div class="data-table overflow-x-auto">
         <table class="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
@@ -17,17 +8,15 @@
               <th
                 v-for="column in columns"
                 :key="column.field"
-                class="py-3 px-6 text-left border-b border-gray-200 bg-gray-200 text-gray-600"
+                class="py-3 px-3 text-left border-b border-gray-200 bg-gray-200 text-gray-600 whitespace-nowrap"
                 :class="column.class"
               >
-                {{ column.label }}
-                <span
-                  v-if="column.sortable"
-                  @click="sortBy(column.field)"
-                  class="cursor-pointer"
-                >
+              <span class="flex items-center cursor-pointer" @click="column.sortable && sortBy(column.field)">
+                <span>{{ column.label }}</span>
+                <span v-if="column.sortable" class="ml-2">
                   {{ sortKey === column.field ? (sortOrder === 'asc' ? '▲' : '▼') : '' }}
                 </span>
+              </span>
               </th>
             </tr>
           </thead>
@@ -41,20 +30,39 @@
               <td
                 v-for="column in columns"
                 :key="column.field"
-                class="py-3 px-2 text-left border-b border-gray-200 bg-white"
+                class="py-3 px-2 text-left border-b border-gray-200 bg-white max-w-[300px] group-hover:bg-gray-100 text-gray-600 truncate hover:whitespace-normal hover:overflow-visible"
                 :class="column.class"
               >
-                <div v-if="$slots[column.field]">
+                <div v-if="$slots[column.field]" class="truncate hover:whitespace-normal hover:overflow-visible">
                   <slot :name="column.field" :row="item"></slot>
                 </div>
-                <div v-else>
+                <div v-else class="truncate hover:whitespace-normal hover:overflow-visible">
                   {{ formatValue(item, column) }}
                 </div>
               </td>
+
             </tr>
           </tbody>
         </table>
       </div>
+
+      <div class="pagination mt-4 flex justify-between mx-4 mb-4">
+        <div>
+          <span class="text-sm text-gray-600">Menampilkan {{ from }} - {{ to }} dari {{ total }}</span>
+        </div>
+        <div>
+          <div v-for="link in links" :key="link.label" class="inline">
+            <a @click="changePage(link.url)" 
+              class="cursor-pointer mr-1 py-1 px-2 bg-gray-300 rounded text-sm hover:bg-blue-500 hover:text-white"
+              :class="{ 'bg-blue-500 text-white': link.active }">
+              <span v-if="link.label.includes('Previous')">‹</span>
+              <span v-else-if="link.label.includes('Next')">›</span>
+              <span v-else>{{ link.label }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
     </div>
   </template>
   
@@ -77,6 +85,10 @@
         type: Number,
         required: true,
       },
+      totalItems: {
+        type: Number,
+        required: true,
+      },
       links: {
         type: Array,
         required: true,
@@ -86,11 +98,13 @@
       return {
         sortKey: '',
         sortOrder: 'asc',
+        from: (this.itemsPerPage * (this.currentPage - 1) + 1).toLocaleString('id-ID'),
+        to: (this.itemsPerPage * this.currentPage).toLocaleString('id-ID'),
+        total: this.totalItems.toLocaleString('id-ID'),
       };
     },
     computed: {
       sortedData() {
-        // Sorting logic can be added here if needed
         return this.data;
       },
     },
@@ -104,7 +118,10 @@
         if (column.type === 'rupiah') {
           return this.formatRupiah(value);
         }
-        return value; // Return the raw value for other types
+        if (column.type === 'date') {
+          return this.formatDate(value);
+        }
+        return value;
       },
       formatRupiah(amount) {
         if (!amount) return '0';
@@ -114,15 +131,22 @@
           minimumFractionDigits: 0,
         }).format(amount);
       },
+      formatDate(date) {
+        if (!date) return '';
+        return new Date(date).toLocaleDateString('id-ID', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      },
       changePage(url) {
         if (url) {
           this.$inertia.visit(url);
         }
       },
     },
+    mounted() {
+      console.log(this);
+    },
   };
   </script>
-  
-  <style scoped>
-  /* Add necessary styles here */
-  </style>
