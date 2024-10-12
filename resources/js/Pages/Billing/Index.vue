@@ -40,12 +40,12 @@
               </div>
               <div class="ml-2 flex">
                 <Datepicker 
-                v-model="date" 
-                range 
-                :enable-time-picker="false" 
-                :multi-calendars="{ solo: true }" 
-                placeholder="Pilih Rentang tanggal"
-                :text-input="textInputOptions"
+                  v-model="date" 
+                  range 
+                  :enable-time-picker="false" 
+                  :multi-calendars="{ solo: true }" 
+                  placeholder="Pilih Rentang tanggal"
+                  @change="searchData"
                 />
               </div>
             </div>
@@ -59,6 +59,10 @@
               :currentPage="currentPage"
               :itemsPerPage="itemsPerPage"
               :links="links"
+              :searchQuery="searchQuery"
+              :selectedJenis="selectedJenis"
+              :startDate="date[0] || ''"
+              :endDate="date[1] || ''"
             />
           </div>
         </div>
@@ -99,12 +103,12 @@ export default {
     },
     qdate: {
       type: Array,
-      default: () => [new Date().setMonth(new Date().getFullYear() - 10), new Date()],
+      default: () => [],
     }
   },
   data() {
     return {
-      date: this.qdate, 
+      date: Array.isArray(this.qdate) ? this.qdate : [null, null],
       searchQuery: this.qcari || '',
       selectedJenis: this.qjenis || '',
       columns: this.getColumns(),
@@ -142,15 +146,6 @@ export default {
         { field: 'karyawan_data', label: 'Dikerjakan Oleh', sortable: true },
       ];
     },
-    searchData() {
-      this.$inertia.get(route('billing'), { 
-        cari: this.searchQuery, 
-        jenis: this.selectedJenis,
-        perPage: this.itemsPerPage,
-        startDate: this.date[0],
-        endDate: this.date[1], 
-      });
-    },
     clearSearch() {
       this.searchQuery = '';
       this.searchData();
@@ -159,13 +154,40 @@ export default {
       this.selectedJenis = '';
       this.searchData();
     },
-    fetchPage(page) {
-      this.$inertia.get(route('billing'), { 
+    searchData() {
+      const startDate = this.date && this.date[0] ? this.date[0] : ''; // Cek jika date[0] ada
+      const endDate = this.date && this.date[1] ? this.date[1] : ''; // Cek jika date[1] ada
+
+      const params = {
         cari: this.searchQuery,
         jenis: this.selectedJenis,
         perPage: this.itemsPerPage,
-        page 
-      });
+        startDate,
+        endDate,
+      };
+
+      // Hapus parameter yang kosong dari objek params
+      Object.keys(params).forEach(key => params[key] === '' && delete params[key]);
+
+      this.$inertia.get(route('billing'), params);
+    },
+    fetchPage(page) {
+      const startDate = this.date && this.date[0] ? this.date[0] : ''; // Cek jika date[0] ada
+      const endDate = this.date && this.date[1] ? this.date[1] : ''; // Cek jika date[1] ada
+
+      const params = {
+        cari: this.searchQuery,
+        jenis: this.selectedJenis,
+        perPage: this.itemsPerPage,
+        page,
+        startDate,
+        endDate,
+      };
+
+      // Hapus parameter yang kosong dari objek params
+      Object.keys(params).forEach(key => params[key] === '' && delete params[key]);
+
+      this.$inertia.get(route('billing'), params);
     },
   },
   watch: {
@@ -177,11 +199,11 @@ export default {
       },
       immediate: true,
     },
-    qdate: {
-      handler(newVal) {
-        this.date = newVal;
+    date: {
+      handler() {
+        this.searchData(); // Trigger search when date changes
       },
-      immediate: true,
+      deep: true, // Make sure to watch for changes in the array
     },
   },
   mounted() {
@@ -189,12 +211,3 @@ export default {
   },
 };
 </script>
-
-<style>
-/* Customize the background of the range selection */
-.dp__range_between {
-  background-color: rgba(0, 123, 255, 0.5); /* Example: light blue */
-  border-radius: 4px; /* Optional: rounded corners */
-}
-
-</style>
