@@ -33,17 +33,19 @@
               class="py-3 px-2 text-left border-b border-gray-200 bg-white max-w-[300px] group-hover:bg-gray-100 text-gray-600 truncate hover:whitespace-normal hover:overflow-visible"
               :class="column.class"
             >
-              <div v-if="column.field === 'karyawan_data'">
-                <span v-if="item.karyawan_data.length">
-                  <span v-for="(karyawan, kIndex) in item.karyawan_data" :key="kIndex">
-                    {{ karyawan.nama }} {{ karyawan.bobot }}%<span v-if="kIndex < item.karyawan_data.length - 1">, </span>
+              <slot :name="column.field" :row="item" :index="index" >
+                <div v-if="column.field === 'karyawan_data'">
+                  <span v-if="item.karyawan_data.length">
+                    <span v-for="(karyawan, kIndex) in item.karyawan_data" :key="kIndex">
+                      {{ karyawan.nama }} {{ karyawan.bobot }}%<span v-if="kIndex < item.karyawan_data.length - 1">, </span>
+                    </span>
                   </span>
-                </span>
-                <span v-else>Tidak ada karyawan</span>
-              </div>
-              <div v-else class="truncate hover:whitespace-normal hover:overflow-visible">
-                {{ formatValue(item, column) }}
-              </div>
+                  <span v-else>Tidak ada karyawan</span>
+                </div>
+                <div v-else class="truncate hover:whitespace-normal hover:overflow-visible">
+                  {{ formatValue(item, column) }}
+                </div>
+              </slot>
             </td>
           </tr>
         </tbody>
@@ -54,7 +56,7 @@
       <div>
         <span class="text-sm text-gray-600">Menampilkan {{ from }} - {{ to }} dari {{ total }}</span>
       </div>
-      <div>
+      <div v-if="links.length > 3">
         <div v-for="link in links" :key="link.label" class="inline">
           <a @click="changePage(link.url)" 
             class="cursor-pointer mr-1 py-1 px-2 bg-gray-300 rounded text-sm hover:bg-blue-500 hover:text-white"
@@ -117,8 +119,8 @@ export default {
     return {
       sortKey: '',
       sortOrder: 'asc',
-      from: (this.itemsPerPage * (this.currentPage - 1) + 1).toLocaleString('id-ID'),
-      to: (this.itemsPerPage * this.currentPage).toLocaleString('id-ID'),
+      from: this.totalItems > 0 ? (this.itemsPerPage * (this.currentPage - 1) + 1).toLocaleString('id-ID') : 0,
+      to: this.totalItems < this.itemsPerPage * this.currentPage ? this.totalItems.toLocaleString('id-ID') : (this.itemsPerPage * (this.currentPage - 1) + this.itemsPerPage).toLocaleString('id-ID'),
       total: this.totalItems.toLocaleString('id-ID'),
     };
   },

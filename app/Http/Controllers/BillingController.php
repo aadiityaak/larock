@@ -6,6 +6,7 @@ use App\Models\MainProject;
 use App\Models\Paket;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class BillingController extends Controller
 {
@@ -15,8 +16,8 @@ class BillingController extends Controller
         $searchTerm = $request->input('cari', '');
         $searchJenis = $request->input('jenis', '');
         $perPage = $request->input('perPage', 150);
-        $searchStartDate = $request->input('startDate', '');
-        $searchEndDate = $request->input('endDate', '');
+        $searchStartDate = $request->input('startDate') ? Carbon::parse($request->input('startDate'))->format('Y-m-d') : '';
+        $searchEndDate = $request->input('endDate') ? Carbon::parse($request->input('endDate'))->format('Y-m-d') : '';
 
         // Query the MainProject model with eager loading and search functionality
         $mainprojects = MainProject::with(['webhost', 'webhost.paket', 'webhost.server'])
@@ -41,6 +42,20 @@ class BillingController extends Controller
 
         $jenis_list = MainProject::select('jenis')->distinct()->get()->pluck('jenis');
         $list_paket = Paket::all();
+        $project_bulan_ini = MainProject::whereIn('jenis', [
+            'Pembuatan',
+            'Pembuatan apk',
+            'Pembuatan apk custom',
+            'Pembuatan Tanpa Domain',
+            'Pembuatan Tanpa Hosting',
+            'Pembuatan Tanpa Domain+Hosting'
+        ])
+            ->whereBetween('tgl_masuk', [
+                date('Y-m-01'), // Tanggal 1 bulan ini
+                date('Y-m-t')   // Tanggal terakhir bulan ini
+            ])
+            ->count();
+        $prediksi_bulan_ini = ceil($project_bulan_ini / intval(date('d'))) * intval(date('t'));
 
         // Add employee names and their workload to each project
         $mainprojects->getCollection()->transform(function ($mainproject) {
@@ -55,6 +70,8 @@ class BillingController extends Controller
             'qjenis' => $searchJenis,
             'listpaket' => $list_paket,
             'qdate' => [$searchStartDate, $searchEndDate],
+            'project_bulan_ini' => $project_bulan_ini,
+            'prediksi_bulan_ini' => $prediksi_bulan_ini
         ]);
     }
 }
