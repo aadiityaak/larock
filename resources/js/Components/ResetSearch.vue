@@ -5,24 +5,12 @@
     :class="['bg-red-500 text-white rounded-full p-1 ml-2 border border-red-500 absolute -right-2 -top-2', customClass]"
     aria-label="Clear search"
   >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-3 w-3"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M6 18L18 6M6 6l12 12"
-      />
-    </svg>
+    <BIconXLg />
   </button>
 </template>
 
 <script>
+import { BIconXLg } from 'bootstrap-icons-vue';
 export default {
   props: {
     isVisible: {
@@ -33,6 +21,9 @@ export default {
       type: String,
       default: '',
     },
+  },
+  components: {
+    BIconXLg
   },
   methods: {
     handleClick() {
