@@ -190,12 +190,13 @@ export default {
       };
 
       const getWebhostValue = (row, key, defaultValue = '-') => {
-        const webhost = row.getValue('webhost') || {};
+        const webhost = row.original.webhost || {};
         return webhost[key] || defaultValue;
       };
+
       const getKaryawanName = (row) => {
-          const karyawan = row.original.karyawan_data || []; // Pastikan akses ke original
-          return karyawan.length > 0 ? karyawan[0].nama + ' ' + karyawan[0].bobot : '-';
+        const karyawan = row.original.karyawan_data || [];
+        return karyawan.length > 0 ? karyawan[0].nama + ' ' + karyawan[0].bobot : '-';
       };
 
       return [
@@ -206,8 +207,8 @@ export default {
           sortable: true,
         },
         {
-          accessorKey: 'webhost',
-          header: () => h('div', {}, 'Nama Website'),
+          accessorKey: 'webhost.nama_web', // Use dot notation for sorting
+          header: () => h(Button, {}, { default: () => 'Nama Website' }), // Use a function for the slot
           cell: ({ row }) => h('div', {}, getWebhostValue(row, 'nama_web')),
           class: 'sticky left-0 z-10 shadow',
           sortable: true,
