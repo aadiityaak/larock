@@ -84,8 +84,8 @@ class BillingController extends Controller
             'qdate' => [$searchStartDate, $searchEndDate],
             'project_bulan_ini' => $project_bulan_ini,
             'prediksi_bulan_ini' => $prediksi_bulan_ini,
-            'sort' => $sortColumn,
-            'direction' => $sortDirection
+            'qsort' => $sortColumn,
+            'qdirection' => $sortDirection
         ]);
     }
 }

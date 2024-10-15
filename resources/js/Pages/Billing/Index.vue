@@ -8,6 +8,41 @@
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white p-4 shadow-md rounded">
 
+          <div class="flex justify-left">
+            <!-- Modal Input Project -->
+            <button @click="showModal = true">Tambah Data</button>
+            <Modal
+              :show="showModal"
+              :closeable="true"
+              @close="showModal = false"
+            >
+              <div class="p-4">
+                <h2 class="text-lg font-bold">Tambah Data</h2>
+                <form @submit.prevent="submit">
+                  <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="jenis" >Jenis </label>
+                    <select v-model="formJenis" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                      <option v-for="(jenispaket, index) in jenispaket" :key="index" :value="jenispaket">{{jenispaket}}</option>
+                    </select>
+                  </div>
+                  <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nama_web">Nama Web</label>
+                    <input v-model="formNama_web" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  </div>
+                  <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                    <input v-model="formEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">  
+                  </div>
+                  <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                    <input v-model="formEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">  
+                  </div>
+                </form> 
+                <button @click="showModal = false" class="mt-4">Close</button>
+              </div>
+            </Modal>
+          </div>
+
           <div class="m-4">
             <div class="grid gap-2 grid-cols-5">
                 <div class="flex justify-between border border-gray-300 py-2 px-4 rounded relative">
@@ -102,6 +137,7 @@ import ResetSearch from '@/Components/ResetSearch.vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import DataTable from '@/Components/DataTable.vue';
+import Modal from '@/Components/Modal.vue';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,6 +161,7 @@ import {
 import {
   Button,
 } from '@/Components/ui/button';
+import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 export default {
   props: {
     mainprojects: Object,
@@ -136,6 +173,8 @@ export default {
     project_bulan_ini: Number,
     prediksi_bulan_ini: Number,
     emptyMessage: String,
+    qdirection: String,
+    qsort: String,
   },
   components: {
     AuthenticatedLayout,
@@ -157,6 +196,7 @@ export default {
     PaginationNext,
     PaginationPrev,
     DataTable,
+    Modal,
     h
   },
 
@@ -169,9 +209,18 @@ export default {
       queryJenis: this.qjenis,
       currentPage: this.mainprojects.current_page || 1,
       itemsPerPage: this.mainprojects.per_page || 100,
+      queryDirection: this.qdirection || 'asc',
+      querySort: this.qsort || 'id',
+      showModal: false,
     }
   },
   methods: {
+    openModal() {
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false; 
+    },
     sortColumn(column) {
       const direction = this.sort === column && this.direction === 'asc' ? 'desc' : 'asc';
       this.$inertia.get(route('billing'), { sort: column, direction });
@@ -205,7 +254,7 @@ export default {
           accessorKey: 'webhost.nama_web',
           header: () => h('div', { class: 'cursor-pointer', onClick: () => this.sortColumn('webhost.nama_web') }, 'Nama Website'),
           cell: ({ row }) => h('div', {}, getWebhostValue(row, 'nama_web')),
-          class: 'sticky left-0 z-10 shadow',
+          class: 'sticky left-0 z-10 shadow bg-white group-hover:bg-gray-50',
           sortable: true,
         },
         {
@@ -230,14 +279,32 @@ export default {
         {
           accessorKey: 'tgl_masuk',
           header: () => h('div', {}, 'Tgl Masuk'),
-          cell: ({ row }) => h('div', {}, new Date(row.getValue('tgl_masuk')).toLocaleDateString()),
+          cell: ({ row }) => h('div', {}, new Date(
+            row.getValue('tgl_masuk')).toLocaleDateString(
+              'id-ID',
+              {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }
+            )
+          ),
+          class: 'text-nowrap',
           sortable: true,
           type: 'date',
         },
         {
           accessorKey: 'tgl_deadline',
           header: () => h('div', {}, 'Tgl Deadline'),
-          cell: ({ row }) => h('div', {}, new Date(row.getValue('tgl_deadline')).toLocaleDateString()),
+          cell: ({ row }) => h('div', {}, new Date(row.getValue('tgl_deadline')).toLocaleDateString(
+            'id-ID',
+            {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }
+          )),
+          class: 'text-nowrap',
           sortable: true,
           type: 'date',
         },
@@ -303,15 +370,37 @@ export default {
           accessorKey: 'karyawan_data[0].nama',
           header: () => h('div', {}, 'Dikerjakan Oleh'),
           cell: ({ row }) => h('div', {}, getKaryawanName(row)),
+          class: 'text-nowrap',
           sortable: true,
         },
         {
           accessorKey: 'tindakan',
           header: () => h('div', {}, 'Tindakan'),
-          cell: ({ row }) => h('div', {}, 'Action Here'), // Customize this logic as needed.
+          cell: ({ row }) => h('div', {}, [
+            h(DropdownMenu, {}, {
+              default: () => [
+                h(DropdownMenuTrigger, { class: 'w-full text-center' }, () => [
+                  h(BIconThreeDotsVertical, {
+                    class: 'w-5 h-5 text-gray-400 group-hover:text-gray-500 mx-auto'
+                  })
+                ]),
+                h(DropdownMenuContent, {}, () => [
+                  h('span', {
+                    onClick: () => handleEdit(row.original.id),
+                    class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                  }, 'Edit'),
+                  h(DropdownMenuSeparator, {}),
+                  h('span', {
+                    onClick: () => handleDelete(row.original.id),
+                    class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                  }, 'Hapus')
+                ])
+              ]
+            })
+          ]),
           sortable: false,
-          class: 'sticky right-0 z-10 shadow',
-        },
+          class: 'sticky right-0 z-10 shadow bg-white group-hover:bg-gray-50',
+        }
       ];
     },
     getCanHide(column) {
@@ -335,6 +424,8 @@ export default {
         perPage: this.itemsPerPage,
         startDate,
         endDate,
+        direction: this.queryDirection,
+        sort: this.querySort
       };
 
       Object.keys(params).forEach(key => params[key] === '' && delete params[key]);
@@ -354,6 +445,8 @@ export default {
         page,
         startDate,
         endDate,
+        direction: this.queryDirection,
+        sort: this.querySort
       };
 
       Object.keys(params).forEach(key => params[key] === '' && delete params[key]);

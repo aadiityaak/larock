@@ -3,7 +3,7 @@
       <Table>
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-            <TableHead v-for="header in headerGroup.headers" :key="header.id">
+            <TableHead class="text-nowrap" v-for="header in headerGroup.headers" :key="header.id" :class="header.column.columnDef.class">
               <FlexRender
                 v-if="!header.isPlaceholder"
                 :render="header.column.columnDef.header"
@@ -16,11 +16,12 @@
           <template v-if="table.getRowModel().rows?.length">
             <TableRow
               v-for="row in table.getRowModel().rows"
+              class="group"
               :key="row.id"
               :data-state="row.getIsSelected() ? 'selected' : undefined"
             >
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" :class="cell.column.columnDef.class">
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()"/>
               </TableCell>
             </TableRow>
           </template>
