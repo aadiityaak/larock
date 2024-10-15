@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\MainProject;
 use App\Models\Paket;
 use Inertia\Inertia;
@@ -18,6 +19,8 @@ class BillingController extends Controller
         $perPage = $request->input('perPage', 150);
         $searchStartDate = $request->input('startDate') ? Carbon::parse($request->input('startDate'))->format('Y-m-d') : '';
         $searchEndDate = $request->input('endDate') ? Carbon::parse($request->input('endDate'))->format('Y-m-d') : '';
+        $sortColumn = $request->input('sort', 'id');
+        $sortDirection = $request->input('direction', 'desc');
 
         // Query the MainProject model with eager loading and search functionality
         $mainprojects = MainProject::with(['webhost', 'webhost.paket', 'webhost.server'])
@@ -37,7 +40,16 @@ class BillingController extends Controller
             ->when($searchEndDate, function ($query) use ($searchEndDate) {
                 $query->whereDate('tgl_masuk', '<=', $searchEndDate);
             })
-            ->orderBy('id', 'desc')
+            // Handle dynamic sorting
+            ->when($sortColumn === 'webhost.nama_web', function ($query) use ($sortDirection) {
+                // Join the webhost table and sort by webhost.nama_web
+                $query->join('tb_webhost', 'tb_cs_main_project.id_webhost', '=', 'tb_webhost.id_webhost')
+                    ->orderBy(DB::raw("REPLACE(TRIM(tb_webhost.nama_web), '	 ', '')"), $sortDirection);
+            }, function ($query) use ($sortColumn, $sortDirection) {
+                // Default sorting by the column in the main table
+                $query->orderBy($sortColumn, $sortDirection);
+            })
+            ->select('tb_cs_main_project.*') // Make sure to select the main project fields
             ->paginate($perPage);
 
         $jenis_list = MainProject::select('jenis')->distinct()->get()->pluck('jenis');
@@ -71,7 +83,9 @@ class BillingController extends Controller
             'listpaket' => $list_paket,
             'qdate' => [$searchStartDate, $searchEndDate],
             'project_bulan_ini' => $project_bulan_ini,
-            'prediksi_bulan_ini' => $prediksi_bulan_ini
+            'prediksi_bulan_ini' => $prediksi_bulan_ini,
+            'sort' => $sortColumn,
+            'direction' => $sortDirection
         ]);
     }
 }

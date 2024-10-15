@@ -72,20 +72,20 @@
           <div class="flex justify-end mt-4">
             <Pagination v-slot="{ page }" :current-page="mainprojects.current_page" :total="mainprojects.last_page" :sibling-count="1" show-edges :default-page="currentPage">
               <PaginationList v-slot="{ items }" class="flex items-center gap-1">
-                <PaginationFirst />
-                <PaginationPrev />
+                <PaginationFirst @click="fetchPage(1)" />
+                <PaginationPrev @click="fetchPage(mainprojects.current_page - 1)" />
 
                 <template v-for="(item, index) in items" :key="index">
                   <PaginationListItem v-if="item.type === 'page'" :value="item.value" as-child>
-                    <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'">
+                    <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'" @click="fetchPage(item.value)">
                       {{ item.value }}
                     </Button>
                   </PaginationListItem>
                   <PaginationEllipsis v-else :index="index" />
                 </template>
 
-                <PaginationNext />
-                <PaginationLast />
+                <PaginationNext @click="fetchPage(mainprojects.current_page + 1)" />
+                <PaginationLast @click="fetchPage(mainprojects.last_page)" />
               </PaginationList>
             </Pagination>
           </div>
@@ -124,8 +124,7 @@ import {
 
 import {
   Button,
-} from '@/components/ui/button'
-
+} from '@/Components/ui/button';
 export default {
   props: {
     mainprojects: Object,
@@ -170,17 +169,13 @@ export default {
       queryJenis: this.qjenis,
       currentPage: this.mainprojects.current_page || 1,
       itemsPerPage: this.mainprojects.per_page || 100,
-      totalItems: this.mainprojects.total || 0,
-      links: this.mainprojects.links || [],
-    }
-  },
-  async mounted() {
-    try {
-      this.table = await this.fetchTableData();
-    } catch (error) {
     }
   },
   methods: {
+    sortColumn(column) {
+      const direction = this.sort === column && this.direction === 'asc' ? 'desc' : 'asc';
+      this.$inertia.get(route('billing'), { sort: column, direction });
+    },
     getColumns() {
       const formatCurrency = (value) => {
         return new Intl.NumberFormat('id-ID', {
@@ -207,8 +202,8 @@ export default {
           sortable: true,
         },
         {
-          accessorKey: 'webhost.nama_web', // Use dot notation for sorting
-          header: () => h(Button, {}, { default: () => 'Nama Website' }), // Use a function for the slot
+          accessorKey: 'webhost.nama_web',
+          header: () => h('div', { class: 'cursor-pointer', onClick: () => this.sortColumn('webhost.nama_web') }, 'Nama Website'),
           cell: ({ row }) => h('div', {}, getWebhostValue(row, 'nama_web')),
           class: 'sticky left-0 z-10 shadow',
           sortable: true,
@@ -343,7 +338,10 @@ export default {
       };
 
       Object.keys(params).forEach(key => params[key] === '' && delete params[key]);
-      this.$inertia.get(route('billing'), params);
+      this.$inertia.get(route('billing'), params, {
+        preserveState: true,
+        preserveState: true
+      });
     },
     fetchPage(page) {
       const startDate = this.queryDate && this.queryDate[0] ? this.queryDate[0] : '';
@@ -358,12 +356,9 @@ export default {
         endDate,
       };
 
-      // Hapus parameter yang kosong dari objek params
       Object.keys(params).forEach(key => params[key] === '' && delete params[key]);
-
       this.$inertia.get(route('billing'), params);
     },
   },
 };
-
 </script>
