@@ -1,55 +1,93 @@
 <template>
-    <div v-if="mainprojects && mainprojects.data && mainprojects.data.length > 0">
-      <nav class="flex justify-between items-center pt-3">
-        <span class="text-sm text-gray-600">
-          Showing page {{ mainprojects.current_page }} of {{ mainprojects.last_page }}
-        </span>
-        <div class="inline-flex items-center">
-          <!-- <button
-            @click="changePage(mainprojects.prev_page_url)"
-            :disabled="!mainprojects.prev_page_url"
-            class="bg-gray-300 text-gray-600 py-2 px-4 rounded-l hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button> -->
-          <button
-            @click="changePage(mainprojects.prev_page_url)"
-            class="bg-gray-300 text-gray-600 py-2 px-4 rounded-l hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
+  <div class="flex justify-end mt-4">
+    <Pagination
+      v-slot="{ page }"
+      :current-page="currentPage"
+      :total="lastPage"
+      :sibling-count="1" 
+      @page-changed="onPageChange"
+    >
+      <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+        <PaginationFirst @click="onPageChange(1)" />
+        <PaginationPrev @click="onPageChange(currentPage - 1)" />
 
-          <button
-            @click="changePage(mainprojects.next_page_url)"
-            :disabled="!mainprojects.next_page_url"
-            class="bg-gray-300 text-gray-600 py-2 px-4 rounded-r hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      </nav>
-    </div>
-    <div v-else>
-      <span>Data not available.</span>
-    </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'Pagination',
-    props: {
-      mainprojects: {
-        type: Object,
-        default: () => ({}),
-      },
+        <template v-for="(item, index) in items">
+          <PaginationListItem v-if="item.type === 'page'" :value="item.value" :key="index" as-child>
+            <Button
+              class="w-10 h-10 p-0"
+              :variant="item.value === currentPage ? 'default' : 'outline'"
+              @click="onPageChange(item.value)"
+            >
+              {{ item.value }}
+            </Button>
+          </PaginationListItem>
+          <PaginationEllipsis v-else :key="item.type" :index="index" />
+        </template>
+
+        <template v-if="lastPage > 3 && currentPage < lastPage - 1">
+          <PaginationEllipsis />
+          <PaginationListItem :value="lastPage" as-child>
+            <Button
+              class="w-10 h-10 p-0"
+              :variant="lastPage === currentPage ? 'default' : 'outline'"
+              @click="onPageChange(lastPage)"
+            >
+              {{ lastPage }}
+            </Button>
+          </PaginationListItem>
+        </template>
+
+        <PaginationNext @click="onPageChange(currentPage + 1)" />
+        <PaginationLast @click="onPageChange(lastPage)" />
+      </PaginationList>
+    </Pagination>
+  </div>
+</template>
+
+<script>
+import { 
+  Pagination, 
+  PaginationList, 
+  PaginationListItem, 
+  PaginationEllipsis, 
+  PaginationFirst, 
+  PaginationLast, 
+  PaginationNext, 
+  PaginationPrev 
+} from '@/Components/ui/pagination';
+import { Button } from '@/Components/ui/button';
+
+export default {
+  props: {
+    currentPage: {
+      type: Number,
+      required: true,
     },
-    methods: {
-      changePage(url) {
-        const page = new URL(url).searchParams.get('page'); // Ambil nomor halaman dari URL
-        if (page) {
-          this.$emit('pagination-change-page', page); // Emit nomor halaman, bukan URL
-        }
-      },
+    lastPage: {
+      type: Number,
+      required: true,
     },
-  };
-  </script>
+  },
+  components: {
+    Pagination,
+    PaginationList,
+    PaginationListItem,
+    PaginationEllipsis,
+    PaginationFirst,
+    PaginationLast,
+    PaginationNext,
+    PaginationPrev,
+    Button
+  },
+  emits: ['page-changed'],
+  methods: {
+    onPageChange(page) {
+      if (page >= 1 && page <= this.lastPage && page !== this.currentPage) {
+        const queryParams = new URLSearchParams(window.location.search);
+        queryParams.set('page', page); // Set the new page number
+        this.$inertia.get(window.location.pathname + '?' + queryParams.toString(), {}, { preserveState: true });
+      }
+    },
+  },
+};
+</script>
