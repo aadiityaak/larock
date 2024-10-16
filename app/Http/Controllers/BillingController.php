@@ -52,7 +52,13 @@ class BillingController extends Controller
             ->select('tb_cs_main_project.*') // Make sure to select the main project fields
             ->paginate($perPage);
 
-        $jenis_list = MainProject::select('jenis')->distinct()->get()->pluck('jenis');
+        $jenis_list = MainProject::select('jenis')
+            ->whereNotNull('jenis') // Mengabaikan nilai null
+            ->where('jenis', '!=', '') // Mengabaikan nilai kosong
+            ->distinct()
+            ->get()
+            ->pluck('jenis');
+
         $list_paket = Paket::all();
         $project_bulan_ini = MainProject::whereIn('jenis', [
             'Pembuatan',

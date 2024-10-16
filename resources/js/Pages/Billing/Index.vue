@@ -8,29 +8,31 @@
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white p-4 shadow-md rounded">
           <div class="flex justify-left">
-            <button @click="showModal = true">Tambah Data</button>
+            <Button @click="showModal = true">Tambah Data</Button>
             <Modal :show="showModal" :closeable="true" @close="showModal = false">
               <div class="p-4">
-                <h2 class="text-lg font-bold">Tambah Data</h2>
+                <h2 class="text-lg font-bold mb-4">Tambah Data</h2>
                 <form @submit.prevent="submit">
-                  <InputField label="Jenis" v-model="formJenis" :options="jenispaket" />
-                  <InputField label="Nama Web" v-model="formNama_web" />
-                  <InputField label="Email" v-model="formEmail" type="email" />
-                  <button @click="showModal = false" class="mt-4">Close</button>
+                  <div v-for="column in columns" :key="column.accessorKey">
+                    <InputField 
+                      v-if="column.formInput" 
+                      :label="column.header" 
+                      v-model="formData[column.accessorKey]" 
+                      :options="column.formOptions || []" 
+                      :inputType="column.formType || 'text'"
+                    />
+                  </div>
+                  <!-- Tombol untuk menutup modal -->
+                   <Button @click="showModal = false" variant="destructive">Close</Button>
+
+                  <!-- Tombol submit form -->
+                  <Button type="submit" class="ml-2">Submit</Button>
+
                 </form>
               </div>
             </Modal>
           </div>
 
-          <div class="m-4">
-            <div class="grid gap-2 grid-cols-5">
-              <StatisticsCard title="Project Bulan ini" :value="project_bulan_ini" color="green" />
-              <StatisticsCard title="Prediksi Bulan ini" :value="prediksi_bulan_ini" color="blue" />
-              <SearchInput v-model="queryCari" @input="searchData" />
-              <SelectInput v-model="queryJenis" :options="jenispaket" @change="searchData" />
-              <Datepicker v-model="queryDate" @change="searchData" />
-            </div>
-          </div>
 
           <div class="overflow-x-auto">
             <DataTable :columns="columns" :data="mainprojects.data" />
@@ -56,8 +58,9 @@ import Pagination from '@/Components/Pagination.vue';
 import InputField from '@/Components/InputField.vue';
 import StatisticsCard from '@/Components/StatisticsCard.vue';
 import SearchInput from '@/Components/SearchInput.vue';
-import SelectInput from '@/Components/SelectInput.vue';
+import SelectField from '@/Components/SelectField.vue';
 import Datepicker from '@vuepic/vue-datepicker';
+import { Button } from '@/Components/ui/button';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 import {
@@ -69,14 +72,13 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 
-
 export default {
   props: {
     mainprojects: Object,
     project_bulan_ini: Number,
     prediksi_bulan_ini: Number,
     jenispaket: Array,
-    
+    listpaket: Array,
   },
   components: {
     AuthenticatedLayout,
@@ -86,7 +88,7 @@ export default {
     InputField,
     StatisticsCard,
     SearchInput,
-    SelectInput,
+    SelectField,
     Datepicker,
     DropdownMenu,
     DropdownMenuContent,
@@ -94,11 +96,20 @@ export default {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    Button,
   },
-  
+  computed: {
+    paketArray() {
+      return Object.values(this.listpaket);
+    }
+  },
   data() {
     return {
       showModal: false,
+      formData: {
+        jenis: '',
+        formNama_web: '',
+      },
       formJenis: '',
       formNama_web: '',
       formEmail: '',
@@ -130,6 +141,7 @@ export default {
       this.$inertia.get(route('billing'), { page, cari: this.queryCari, jenis: this.queryJenis });
     },
     getColumns() {
+    
       const getKaryawanName = (row) => {
         const karyawan = row.row.original.karyawan_data || [];
         return karyawan.length > 0 ? karyawan[0].nama + ' ' + karyawan[0].bobot : '-';
@@ -150,66 +162,117 @@ export default {
       };
 
       return [
-      { accessorKey: 'jenis', header: 'Jenis' },
+      {
+        accessorKey: 'jenis',
+        header: 'Jenis',
+        formInput: true,
+        formType: 'select',
+        formOptions: this.jenispaket.map((paket) => ({
+          value: paket,
+          label: paket
+        }))
+      },
       { 
         accessorKey: 'webhost.nama_web', 
         header: 'Nama Website',
+        formInput: true,
         class: 'sticky left-0 bg-white group-hover:bg-gray-50',
-       },
-      { accessorKey: 'webhost.paket.paket', header: 'Paket' },
-      { accessorKey: 'deskripsi', header: 'Deskripsi' },
+      },
+      { 
+        accessorKey: 'webhost.paket.paket', 
+        header: 'Paket',
+        formInput: true,
+        formType: 'select',
+        formOptions: this.listpaket.map((paket) => ({
+          value: paket.id_paket,
+          label: paket.paket
+        })),
+      },
+      { 
+        accessorKey: 'deskripsi', 
+        header: 'Deskripsi',
+        formInput: true,
+      },
       { 
         accessorKey: 'trf', 
         header: 'Trf',
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
-       },
-      { 
+        formInput: true,
+      },
+      {
         accessorKey: 'tgl_masuk', 
         header: 'Tgl Masuk',
         cell: (row) => formatDate(row.getValue()),
         class: 'text-nowrap',
+        formInput: true,
       },
       { 
         accessorKey: 'tgl_deadline', 
         header: 'Tgl Deadline',
         cell: (row) => formatDate(row.getValue()),
         class: 'text-nowrap',
+        formInput: true,
       },
       { 
         accessorKey: 'biaya', 
         header: 'Biaya',
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
-       },
+        formInput: true,
+      },
       { 
         accessorKey: 'dibayar', 
         header: 'Dibayar',
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
+        formInput: true,
       },
       { 
         accessorKey: 'kurang', 
         header: 'Kurang',
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
+        formInput: true,
       },
       { 
         accessorKey: 'saldo', 
         header: 'Saldo',
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
+        formInput: true,
       },
-      { accessorKey: 'webhost.hp', header: 'HP' },
-      { accessorKey: 'webhost.telegram', header: 'Telegram' },
-      { accessorKey: 'webhost.hpads', header: 'HP Ads' },
-      { accessorKey: 'webhost.wa', header: 'WhatsApp' },
-      { accessorKey: 'webhost.email', header: 'Email' },
+      { 
+        accessorKey: 'webhost.hp', 
+        header: 'HP',
+        formInput: true,
+      },
+      { 
+        accessorKey: 'webhost.telegram', 
+        header: 'Telegram',
+        formInput: true,
+      },
+      { 
+        accessorKey: 'webhost.hpads', 
+        header: 'HP Ads',
+        formInput: true,
+      },
+      { 
+        accessorKey: 'webhost.wa', 
+        header: 'WhatsApp',
+        formInput: true,
+      },
+      { 
+        accessorKey: 'webhost.email', 
+        header: 'Email',
+        formInput: true,
+      },
       { 
         accessorKey: 'karyawan_data[0].nama', 
         header: 'Dikerjakan Oleh',
         cell: (row) => getKaryawanName(row),
         class: 'text-nowrap',
+        formInput: true,
        },
        {
           accessorKey: 'tindakan',
