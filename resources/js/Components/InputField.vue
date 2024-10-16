@@ -1,46 +1,55 @@
 <template>
   <div class="mb-4">
     <label class="block text-gray-700 text-sm font-bold mb-2">{{ label }}</label>
-    <!-- <select 
-      v-if="isSelectType" 
-      :value="modelValue || ''" 
-      @change="updateValue($event.target.value)" 
-      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
-    >
-      <option disabled value="">Pilih...</option>
-      <option 
-        v-for="option in filteredOptions" 
-        v-if="option.label !== '-'"
-        :key="option.value" 
-        :value="option.value"
-      >
-        {{ option.label }}
-      </option>
-    </select> -->
-    <Select 
-      v-if="isSelectType" 
-      :value="modelValue || ''" 
-      @change="updateValue($event.target.value)" 
-    >
+
+    <Select v-if="isSelectType">
       <SelectTrigger>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
           <SelectItem 
-          v-for="option in filteredOptions" 
-          :key="option.value" 
-          :value="String(option.value)">
-            <SelectLabel>{{ option.label }}</SelectLabel>
+            v-for="option in filteredOptions" 
+            :key="option.value" 
+            :value="String(option.value)"
+          >
+            <SelectLabel class="pl-0">{{ option.label }}</SelectLabel>
           </SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
+
+    <Popover v-else-if="isDateType">
+      <PopoverTrigger as-child>
+        <Button
+          variant="outline"
+          :class="[
+            'w-full justify-start text-left font-normal',
+            !modelValue && 'text-muted-foreground',
+          ]"
+        >
+          <CalendarIcon class="mr-2 h-4 w-4" />
+          {{ modelValue ? df.format(new Date(modelValue)) : "Pilih Tanggal" }}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent class="w-auto p-0">
+        <Calendar :value="modelValue" @change="$emit('update:modelValue', $event)" />
+      </PopoverContent>
+    </Popover>
+
+    <Input 
+      v-else-if="inputType === 'currency'"
+      ref="currencyInput"
+      type="text"
+      :value="formattedCurrency"
+      @input="updateCurrency"
+    />
+
     <Input 
       v-else
       type="text"
-      :value="modelValue" 
-      @input="updateValue($event.target.value)" 
+      :value="modelValue"
+      @input="$emit('update:modelValue', $event.target.value)"
     />
   </div>
 </template>
@@ -55,7 +64,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
+import { Calendar as CalendarIcon } from 'lucide-vue-next'
+import { Calendar } from '@/Components/ui/calendar'
+import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
+
 export default {
   props: {
     label: {
@@ -63,7 +77,7 @@ export default {
       required: true,
     },
     modelValue: {
-      type: [String, Number],
+      type: [String, Number, Date, Array, Object],
       default: '',
     },
     options: {
@@ -84,23 +98,50 @@ export default {
     SelectTrigger,
     SelectValue,
     Input,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+    Calendar,
+    CalendarIcon,
+    Button,
   },
   emits: ['update:modelValue'],
   computed: {
+    df() {
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    },
     isSelectType() {
       return this.inputType === 'select' && Array.isArray(this.options) && this.options.length > 0;
     },
+    isDateType() {
+      return this.inputType === 'date';
+    },
     filteredOptions() {
-      return this.options.filter(option => option && option.label && option.label !== '-');
+      return this.options.filter(option => option?.label && option.label !== '-');
+    },
+    formattedCurrency() {
+      const value = parseFloat(this.modelValue);
+      return isNaN(value) ? '' : new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+      }).format(value);
     },
   },
   methods: {
-    updateValue(value) {
+    updateCurrency(event) {
+      const value = event.target.value.replace(/[^\d]/g, '');
       this.$emit('update:modelValue', value);
+      this.$nextTick(() => {
+        if (this.$refs.currencyInput) {
+          this.$refs.currencyInput.value = this.formattedCurrency;
+        }
+      });
     },
-  },
-  mounted() {
-    // console.log(this.options);
   },
 };
 </script>

@@ -7,7 +7,7 @@
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white p-4 shadow-md rounded">
-          <div class="flex justify-left">
+          <div class="flex justify-left mb-3">
             <Button @click="showModal = true">Tambah Data</Button>
             <Modal :show="showModal" :closeable="true" @close="showModal = false">
               <div class="p-4">
@@ -22,12 +22,8 @@
                       :inputType="column.formType || 'text'"
                     />
                   </div>
-                  <!-- Tombol untuk menutup modal -->
-                   <Button @click="showModal = false" variant="destructive">Close</Button>
-
-                  <!-- Tombol submit form -->
+                  <Button @click="showModal = false" variant="destructive">Close</Button>
                   <Button type="submit" class="ml-2">Submit</Button>
-
                 </form>
               </div>
             </Modal>
@@ -106,10 +102,7 @@ export default {
   data() {
     return {
       showModal: false,
-      formData: {
-        jenis: '',
-        formNama_web: '',
-      },
+      formData: {},
       formJenis: '',
       formNama_web: '',
       formEmail: '',
@@ -187,6 +180,10 @@ export default {
           value: paket.id_paket,
           label: paket.paket
         })),
+        cell: (row) => {
+          // console.log(row.row); 
+          return row.row.original.webhost?.paket?.paket || 'N/A';
+        }
       },
       { 
         accessorKey: 'deskripsi', 
@@ -199,6 +196,7 @@ export default {
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'currency',
       },
       {
         accessorKey: 'tgl_masuk', 
@@ -206,6 +204,7 @@ export default {
         cell: (row) => formatDate(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'date',
       },
       { 
         accessorKey: 'tgl_deadline', 
@@ -213,6 +212,7 @@ export default {
         cell: (row) => formatDate(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'date',
       },
       { 
         accessorKey: 'biaya', 
@@ -220,6 +220,7 @@ export default {
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'currency',
       },
       { 
         accessorKey: 'dibayar', 
@@ -227,6 +228,7 @@ export default {
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'currency',
       },
       { 
         accessorKey: 'kurang', 
@@ -234,6 +236,7 @@ export default {
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'currency',
       },
       { 
         accessorKey: 'saldo', 
@@ -241,6 +244,7 @@ export default {
         cell: (row) => formatRupiah(row.getValue()),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'currency',
       },
       { 
         accessorKey: 'webhost.hp', 
