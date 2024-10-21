@@ -14,13 +14,50 @@
                 <h2 class="text-lg font-bold mb-4">Tambah Data</h2>
                 <form @submit.prevent="submit">
                   <div v-for="column in columns" :key="column.accessorKey">
-                    <InputField 
-                      v-if="column.formInput" 
-                      :label="column.header" 
-                      v-model="formData[column.accessorKey]" 
-                      :options="column.formOptions || []" 
-                      :inputType="column.formType || 'text'"
-                    />
+                    <div class="grid w-full mb-3 items-center gap-1.5">
+                      <Label for="picture">{{ column.header }} - {{ column.formType }}</Label>
+
+                      <Input v-if="column.formType === 'text'" :label="column.label" :name="column.accessorKey" />
+                      
+                      <Input
+                        v-if="column.formType === 'currency'"
+                        :label="column.label"
+                        :name="column.accessorKey"
+                        type="text"  
+                        v-model="formData[column.accessorKey]"  
+                        @input="updateCurrency" 
+                      />
+
+                      <Select v-if="column.formType === 'select'" v-model="formData[column.accessorKey]">
+                        <SelectTrigger class="w-[180px]">
+                          <SelectValue :placeholder="column.label" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>{{ column.header }}</SelectLabel>
+                            <SelectItem v-for="option in column.formOptions" :key="option.value" :value="option.value.toString()">
+                              {{ option.label }}
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+
+                      <Popover v-if="column.formType === 'date'" v-model="formData[column.accessorKey]">
+                        <PopoverTrigger as-child>
+                          <Button variant="outline" size="icon" :class="[
+                              'w-full justify-start text-left font-normal',
+                              !modelValue && 'text-muted-foreground',
+                            ]">
+                            <CalendarIcon class="h-4 w-4" />
+                            {{ modelValue ? df.format(modelValue.toString()) : 'Pilih Tanggal' }}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <Calendar v-model:date="formData[column.accessorKey]" @change="modelValue = $event" />
+                        </PopoverContent>
+                      </Popover>
+
+                    </div>
                   </div>
                   <Button @click="showModal = false" variant="destructive">Close</Button>
                   <Button type="submit" class="ml-2">Submit</Button>
@@ -51,12 +88,27 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import DataTable from '@/Components/DataTable.vue';
 import Pagination from '@/Components/Pagination.vue';
-import InputField from '@/Components/InputField.vue';
 import StatisticsCard from '@/Components/StatisticsCard.vue';
 import SearchInput from '@/Components/SearchInput.vue';
-import SelectField from '@/Components/SelectField.vue';
-import Datepicker from '@vuepic/vue-datepicker';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon } from 'lucide-vue-next';
+import { Calendar } from '@/Components/ui/calendar';
+import { Input } from '@/Components/ui/input';
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger
+} from '@/Components/ui/popover';
+import {   
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue, 
+} from '@/Components/ui/select';
+import { Label } from '@/components/ui/label';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 import {
@@ -75,17 +127,15 @@ export default {
     prediksi_bulan_ini: Number,
     jenispaket: Array,
     listpaket: Array,
+    modelValue: String,
   },
   components: {
     AuthenticatedLayout,
     Modal,
     DataTable,
     Pagination,
-    InputField,
     StatisticsCard,
     SearchInput,
-    SelectField,
-    Datepicker,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -93,11 +143,34 @@ export default {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
     Button,
+    Input,
+    Label,
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+    Calendar,
+    CalendarIcon,
+    BIconThreeDotsVertical,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
   },
+  emits: ['update:modelValue'],
   computed: {
     paketArray() {
       return Object.values(this.listpaket);
-    }
+    },
+    df() {
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    },
   },
   data() {
     return {
@@ -114,6 +187,24 @@ export default {
   },
   
   methods: {
+    updateCurrency(event) {
+      let value = event.target.value;  // Ambil nilai input
+      // Hilangkan simbol mata uang dan karakter non-numeric untuk menyimpan nilai numerik
+      let numericValue = value.replace(/[^\d]/g, '');  
+      // Hilangkan 0 di depan (leading zeros)
+      numericValue = numericValue.replace(/^0+/, '');
+
+      // Simpan nilai numerik ke formData
+      this.formData[event.target.name] = numericValue;  
+      
+      // Format nilai dan perbarui tampilan input
+      event.target.value = this.formatRupiah(numericValue);  // Format kembali untuk tampilan
+    },
+    formatRupiah(value) {
+      if (!value) return 'Rp 0';
+      // Format nilai menjadi format mata uang
+      return 'Rp ' + value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
     submit() {
       // Logika untuk mengirim data form
       // console.log("Data submitted:", { formJenis: this.formJenis, formNama_web: this.formNama_web, formEmail: this.formEmail });
@@ -170,6 +261,7 @@ export default {
         header: 'Nama Website',
         formInput: true,
         class: 'sticky left-0 bg-white group-hover:bg-gray-50',
+        formType: 'text',
       },
       { 
         accessorKey: 'webhost.paket.paket', 
@@ -189,6 +281,7 @@ export default {
         accessorKey: 'deskripsi', 
         header: 'Deskripsi',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'trf', 
@@ -197,6 +290,7 @@ export default {
         class: 'text-nowrap',
         formInput: true,
         formType: 'currency',
+        formType: 'text',
       },
       {
         accessorKey: 'tgl_masuk', 
@@ -277,35 +371,35 @@ export default {
         cell: (row) => getKaryawanName(row),
         class: 'text-nowrap',
         formInput: true,
-       },
-       {
-          accessorKey: 'tindakan',
-          header: () => h('div', {}, 'Tindakan'),
-          cell: ({ row }) => h('div', {}, [
-            h(DropdownMenu, {}, {
-              default: () => [
-                h(DropdownMenuTrigger, { class: 'w-full text-center' }, () => [
-                  h(BIconThreeDotsVertical, {
-                    class: 'w-5 h-5 text-gray-400 group-hover:text-gray-500 mx-auto'
-                  })
-                ]),
-                h(DropdownMenuContent, {}, () => [
-                  h('span', {
-                    onClick: () => handleEdit(row.original.id),
-                    class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                  }, 'Edit'),
-                  h(DropdownMenuSeparator, {}),
-                  h('span', {
-                    onClick: () => handleDelete(row.original.id),
-                    class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                  }, 'Hapus')
-                ])
-              ]
-            })
-          ]),
-          sortable: false,
-          class: 'sticky right-0 z-10 shadow bg-white group-hover:bg-gray-50',
-        }
+      },
+      {
+        accessorKey: 'tindakan',
+        header: () => h('div', {}, 'Tindakan'),
+        cell: ({ row }) => h('div', {}, [
+          h(DropdownMenu, {}, {
+            default: () => [
+              h(DropdownMenuTrigger, { class: 'w-full text-center' }, () => [
+                h(BIconThreeDotsVertical, {
+                  class: 'w-5 h-5 text-gray-400 group-hover:text-gray-500 mx-auto'
+                })
+              ]),
+              h(DropdownMenuContent, {}, () => [
+                h('span', {
+                  onClick: () => handleEdit(row.original.id),
+                  class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                }, 'Edit'),
+                h(DropdownMenuSeparator, {}),
+                h('span', {
+                  onClick: () => handleDelete(row.original.id),
+                  class: 'cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                }, 'Hapus')
+              ])
+            ]
+          })
+        ]),
+        sortable: false,
+        class: 'sticky right-0 z-10 shadow bg-white group-hover:bg-gray-50',
+      }
       ];
     },
   },

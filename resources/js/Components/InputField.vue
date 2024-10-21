@@ -2,16 +2,18 @@
   <div class="mb-4">
     <label class="block text-gray-700 text-sm font-bold mb-2">{{ label }}</label>
 
+    <!-- Select Input -->
     <Select v-if="isSelectType">
       <SelectTrigger>
-        <SelectValue />
+        <SelectValue :value="modelValue" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
           <SelectItem 
             v-for="option in filteredOptions" 
             :key="option.value" 
-            :value="String(option.value)"
+            :value="option.value.toString()"
+            @click="$emit('update:modelValue', option.value)"
           >
             <SelectLabel class="pl-0">{{ option.label }}</SelectLabel>
           </SelectItem>
@@ -19,6 +21,7 @@
       </SelectContent>
     </Select>
 
+    <!-- Date Picker Input -->
     <Popover v-else-if="isDateType">
       <PopoverTrigger as-child>
         <Button
@@ -37,20 +40,23 @@
       </PopoverContent>
     </Popover>
 
-    <Input 
-      v-else-if="inputType === 'currency'"
-      ref="currencyInput"
-      type="text"
-      :value="formattedCurrency"
-      @input="updateCurrency"
-    />
-
+    <!-- Currency Input -->
     <Input 
       v-else
       type="text"
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @change="$emit('update:modelValue', $event.target.value)"
     />
+
+    <!-- Text Input -->
+    <Input 
+      v-else
+      type="text"
+      :value="modelValue"
+      @change="debounce(updateModelValue, 300)"
+    />
+
+
   </div>
 </template>
 
@@ -63,12 +69,12 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/Components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
-import { Calendar as CalendarIcon } from 'lucide-vue-next'
-import { Calendar } from '@/Components/ui/calendar'
-import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
+} from '@/Components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Calendar as CalendarIcon } from 'lucide-vue-next';
+import { Calendar } from '@/Components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/Components/ui/input';
 
 export default {
   props: {
@@ -136,12 +142,26 @@ export default {
     updateCurrency(event) {
       const value = event.target.value.replace(/[^\d]/g, '');
       this.$emit('update:modelValue', value);
+    },
+    formatCurrency() {
       this.$nextTick(() => {
         if (this.$refs.currencyInput) {
           this.$refs.currencyInput.value = this.formattedCurrency;
         }
       });
     },
+    debounce(fn, delay) {
+      let timeoutID = null;
+      return function() {
+        clearTimeout(timeoutID);
+        let args = arguments;
+        let context = this;
+        timeoutID = setTimeout(function() {
+          fn.apply(context, args);
+        }, delay);
+      };
+    }
+
   },
 };
 </script>
