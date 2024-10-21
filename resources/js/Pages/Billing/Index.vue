@@ -15,48 +15,57 @@
                 <form @submit.prevent="submit">
                   <div v-for="column in columns" :key="column.accessorKey">
                     <div class="grid w-full mb-3 items-center gap-1.5">
-                      <Label for="picture">{{ column.header }} - {{ column.formType }}</Label>
+                      <Label>{{ column.header }} - {{ column.formType }}</Label>
 
                       <Input v-if="column.formType === 'text'" :label="column.label" :name="column.accessorKey" />
-                      
+
                       <Input
                         v-if="column.formType === 'currency'"
                         :label="column.label"
                         :name="column.accessorKey"
-                        type="text"  
-                        v-model="formData[column.accessorKey]"  
-                        @input="updateCurrency" 
+                        type="text"
+                        v-model="formData[column.accessorKey]"
+                        @input="updateCurrency"
+                        @blur="formatCurrency"
                       />
 
                       <Select v-if="column.formType === 'select'" v-model="formData[column.accessorKey]">
-                        <SelectTrigger class="w-[180px]">
+                        <SelectTrigger class="w-full">
                           <SelectValue :placeholder="column.label" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>{{ column.header }}</SelectLabel>
-                            <SelectItem v-for="option in column.formOptions" :key="option.value" :value="option.value.toString()">
+                            <SelectItem
+                              v-for="option in column.formOptions"
+                              :key="option.value"
+                              :value="option.value.toString()"
+                            >
                               {{ option.label }}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
 
-                      <Popover v-if="column.formType === 'date'" v-model="formData[column.accessorKey]">
+                      <!-- Date Picker -->
+                      <Popover v-if="column.formType === 'date'">
                         <PopoverTrigger as-child>
-                          <Button variant="outline" size="icon" :class="[
-                              'w-full justify-start text-left font-normal',
-                              !modelValue && 'text-muted-foreground',
-                            ]">
-                            <CalendarIcon class="h-4 w-4" />
-                            {{ modelValue ? df.format(modelValue.toString()) : 'Pilih Tanggal' }}
-                          </Button>
+                            <Button
+                              variant="outline"
+                              :class="['w-full ps-3 text-start font-normal', !modelValue && 'text-muted-foreground']"
+                            >
+                              <span>{{ formatDate(formData[column.accessorKey]) }}</span>
+                              <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+                            </Button>
                         </PopoverTrigger>
-                        <PopoverContent>
-                          <Calendar v-model:date="formData[column.accessorKey]" @change="modelValue = $event" />
+                        <PopoverContent class="w-auto p-0">
+                          <Calendar
+                            v-model="formData[column.accessorKey]"
+                            calendar-label="Tanggal"
+                            initial-focus
+                          />
                         </PopoverContent>
                       </Popover>
-
                     </div>
                   </div>
                   <Button @click="showModal = false" variant="destructive">Close</Button>
@@ -65,7 +74,6 @@
               </div>
             </Modal>
           </div>
-
 
           <div class="overflow-x-auto">
             <DataTable :columns="columns" :data="mainprojects.data" />
@@ -94,6 +102,9 @@ import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { Calendar } from '@/Components/ui/calendar';
 import { Input } from '@/Components/ui/input';
+import { Label } from '@/components/ui/label';
+import '@vuepic/vue-datepicker/dist/main.css';
+import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 import { 
   Popover, 
   PopoverContent, 
@@ -108,9 +119,6 @@ import {
   SelectTrigger,
   SelectValue, 
 } from '@/Components/ui/select';
-import { Label } from '@/components/ui/label';
-import '@vuepic/vue-datepicker/dist/main.css';
-import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -172,6 +180,9 @@ export default {
       });
     },
   },
+  mounted() {
+    console.log('formData awal:', this.formData);
+  },
   data() {
     return {
       showModal: false,
@@ -189,21 +200,44 @@ export default {
   methods: {
     updateCurrency(event) {
       let value = event.target.value;  // Ambil nilai input
-      // Hilangkan simbol mata uang dan karakter non-numeric untuk menyimpan nilai numerik
+      // Hilangkan simbol mata uang dan karakter non-numeric
       let numericValue = value.replace(/[^\d]/g, '');  
       // Hilangkan 0 di depan (leading zeros)
       numericValue = numericValue.replace(/^0+/, '');
 
       // Simpan nilai numerik ke formData
       this.formData[event.target.name] = numericValue;  
-      
-      // Format nilai dan perbarui tampilan input
+    },
+    
+    formatCurrency(event) {
+      const name = event.target.name;
+      const numericValue = this.formData[name] || '';  // Ambil nilai numerik dari formData
       event.target.value = this.formatRupiah(numericValue);  // Format kembali untuk tampilan
     },
+
     formatRupiah(value) {
       if (!value) return 'Rp 0';
       // Format nilai menjadi format mata uang
       return 'Rp ' + value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+    isDateValid(date) {
+      return date instanceof Date && !isNaN(date);
+    },
+    formatDate(date) {
+      if (!date) return 'Pilih Tanggal';
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(date));
+    },
+    updateDate(date, columnKey) {
+      if (date) {
+        this.formData[columnKey] = date.toISOString().split('T')[0]; // Store in YYYY-MM-DD format
+      } else {
+        this.formData[columnKey] = null; // Set null if no date
+      }
+      console.log('Tanggal diperbarui:', this.formData[columnKey]);
     },
     submit() {
       // Logika untuk mengirim data form
@@ -290,7 +324,6 @@ export default {
         class: 'text-nowrap',
         formInput: true,
         formType: 'currency',
-        formType: 'text',
       },
       {
         accessorKey: 'tgl_masuk', 
@@ -344,26 +377,31 @@ export default {
         accessorKey: 'webhost.hp', 
         header: 'HP',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'webhost.telegram', 
         header: 'Telegram',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'webhost.hpads', 
         header: 'HP Ads',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'webhost.wa', 
         header: 'WhatsApp',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'webhost.email', 
         header: 'Email',
         formInput: true,
+        formType: 'text',
       },
       { 
         accessorKey: 'karyawan_data[0].nama', 
@@ -371,6 +409,7 @@ export default {
         cell: (row) => getKaryawanName(row),
         class: 'text-nowrap',
         formInput: true,
+        formType: 'text',
       },
       {
         accessorKey: 'tindakan',
