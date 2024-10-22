@@ -17,7 +17,13 @@
                     <div class="grid w-full mb-3 items-center gap-1.5">
                       <Label>{{ column.header }} - {{ column.formType }}</Label>
 
-                      <Input v-if="column.formType === 'text'" :label="column.label" :name="column.accessorKey" />
+                      <Input 
+                      v-if="column.formType === 'text'" 
+                      :label="column.label" 
+                      :name="column.accessorKey"
+                      type="text"
+                      v-model="formData[column.accessorKey]"
+                      />
 
                       <Input
                         v-if="column.formType === 'currency'"
@@ -29,7 +35,10 @@
                         @blur="formatCurrency"
                       />
 
-                      <Select v-if="column.formType === 'select'" v-model="formData[column.accessorKey]">
+                      <Select 
+                      v-if="column.formType === 'select'" 
+                      :multiple="column.multiple"
+                      v-model="formData[column.accessorKey]">
                         <SelectTrigger class="w-full">
                           <SelectValue :placeholder="column.label" />
                         </SelectTrigger>
@@ -69,7 +78,7 @@
                     </div>
                   </div>
                   <Button @click="showModal = false" variant="destructive">Close</Button>
-                  <Button type="submit" class="ml-2">Submit</Button>
+                  <Button type="submit"  class="ml-2">Submit</Button>
                 </form>
               </div>
             </Modal>
@@ -103,7 +112,6 @@ import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { Calendar } from '@/Components/ui/calendar';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/components/ui/label';
-import '@vuepic/vue-datepicker/dist/main.css';
 import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
 import { 
   Popover, 
@@ -136,6 +144,7 @@ export default {
     jenispaket: Array,
     listpaket: Array,
     modelValue: String,
+    listkaryawan: Array,
   },
   components: {
     AuthenticatedLayout,
@@ -241,7 +250,7 @@ export default {
     },
     submit() {
       // Logika untuk mengirim data form
-      // console.log("Data submitted:", { formJenis: this.formJenis, formNama_web: this.formNama_web, formEmail: this.formEmail });
+      console.log('Data form:', this.formData);
       this.showModal = false;
     },
     searchData() {
@@ -409,7 +418,12 @@ export default {
         cell: (row) => getKaryawanName(row),
         class: 'text-nowrap',
         formInput: true,
-        formType: 'text',
+        formType: 'select',
+        multiple: true,
+        formOptions: this.listkaryawan.map((karyawan) => ({
+          value: karyawan.id_karyawan,
+          label: karyawan.nama
+        }))
       },
       {
         accessorKey: 'tindakan',

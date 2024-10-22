@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\MainProject;
 use App\Models\Paket;
+use App\Models\Karyawan;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -60,6 +61,7 @@ class BillingController extends Controller
             ->pluck('jenis');
 
         $list_paket = Paket::all();
+        $list_karyawan = Karyawan::all();
         $project_bulan_ini = MainProject::whereIn('jenis', [
             'Pembuatan',
             'Pembuatan apk',
@@ -87,6 +89,7 @@ class BillingController extends Controller
             'jenispaket' => $jenis_list,
             'qjenis' => $searchJenis,
             'listpaket' => $list_paket,
+            'listkaryawan' => $list_karyawan,
             'qdate' => [$searchStartDate, $searchEndDate],
             'project_bulan_ini' => $project_bulan_ini,
             'prediksi_bulan_ini' => $prediksi_bulan_ini,
