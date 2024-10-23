@@ -8,80 +8,85 @@
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white p-4 shadow-md rounded">
           <div class="flex justify-left mb-3">
-            <Button @click="showModal = true">Tambah Data</Button>
-            <Modal :show="showModal" :closeable="true" @close="showModal = false">
-              <div class="p-4">
-                <h2 class="text-lg font-bold mb-4">Tambah Data</h2>
-                <form @submit.prevent="submit">
-                  <div v-for="column in columns" :key="column.accessorKey">
-                    <div class="grid w-full mb-3 items-center gap-1.5">
-                      <Label>{{ column.header }} - {{ column.formType }}</Label>
+            <Dialog>
+              <DialogTrigger>
+                <Button><BIconPlus class="h-6 w-6" /> Tambah Data</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Tambah Data</DialogTitle>
+                </DialogHeader>
+                  <ScrollArea class="max-h-[73vh] w-full rounded-md border">
+                    <form @submit.prevent="submit" class="py-4 px-5">
+                      <div v-for="column in columns" :key="column.accessorKey">
+                        <div v-if="column.formType" class="grid w-full mb-4 items-center">
+                          <Label class="mb-2">{{ column.header }} - {{ column.formType }}</Label>
 
-                      <Input 
-                      v-if="column.formType === 'text'" 
-                      :label="column.label" 
-                      :name="column.accessorKey"
-                      type="text"
-                      v-model="formData[column.accessorKey]"
-                      />
-
-                      <Input
-                        v-if="column.formType === 'currency'"
-                        :label="column.label"
-                        :name="column.accessorKey"
-                        type="text"
-                        v-model="formData[column.accessorKey]"
-                        @input="updateCurrency"
-                        @blur="formatCurrency"
-                      />
-
-                      <Select 
-                      v-if="column.formType === 'select'" 
-                      :multiple="column.multiple"
-                      v-model="formData[column.accessorKey]">
-                        <SelectTrigger class="w-full">
-                          <SelectValue :placeholder="column.label" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>{{ column.header }}</SelectLabel>
-                            <SelectItem
-                              v-for="option in column.formOptions"
-                              :key="option.value"
-                              :value="option.value.toString()"
-                            >
-                              {{ option.label }}
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-
-                      <!-- Date Picker -->
-                      <Popover v-if="column.formType === 'date'">
-                        <PopoverTrigger as-child>
-                            <Button
-                              variant="outline"
-                              :class="['w-full ps-3 text-start font-normal', !modelValue && 'text-muted-foreground']"
-                            >
-                              <span>{{ formatDate(formData[column.accessorKey]) }}</span>
-                              <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent class="w-auto p-0">
-                          <Calendar
-                            v-model="formData[column.accessorKey]"
-                            calendar-label="Tanggal"
-                            initial-focus
+                          <Input 
+                          v-if="column.formType === 'text'" 
+                          :label="column.label" 
+                          :name="column.accessorKey"
+                          type="text"
+                          v-model="formData[column.accessorKey]"
                           />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                  <Button @click="showModal = false" variant="destructive">Close</Button>
-                  <Button type="submit"  class="ml-2">Submit</Button>
-                </form>
-              </div>
-            </Modal>
+
+                          <Input
+                            v-if="column.formType === 'currency'"
+                            :label="column.label"
+                            :name="column.accessorKey"
+                            type="text"
+                            v-model="formData[column.accessorKey]"
+                            @input="updateCurrency"
+                            @blur="formatCurrency"
+                          />
+
+                          <Select 
+                          v-if="column.formType === 'select'" 
+                          :multiple="column.multiple"
+                          v-model="formData[column.accessorKey]">
+                            <SelectTrigger class="w-full">
+                              <SelectValue :placeholder="column.label" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>{{ column.header }}</SelectLabel>
+                                <SelectItem
+                                  v-for="option in column.formOptions"
+                                  :key="option.value"
+                                  :value="option.value.toString()"
+                                >
+                                  {{ option.label }}
+                                </SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+
+                          <!-- Date Picker -->
+                          <Popover v-if="column.formType === 'date'">
+                            <PopoverTrigger as-child>
+                                <Button
+                                  variant="outline"
+                                  :class="['w-full ps-3 text-start font-normal', !modelValue && 'text-muted-foreground']"
+                                >
+                                  <span>{{ formatDate(formData[column.accessorKey]) }}</span>
+                                  <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent class="w-auto p-0">
+                              <Calendar
+                                v-model="formData[column.accessorKey]"
+                                calendar-label="Tanggal"
+                                initial-focus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      <Button type="submit">Submit</Button>
+                    </form>
+                  </ScrollArea>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div class="overflow-x-auto">
@@ -102,7 +107,15 @@
 <script>
 import { h } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Modal from '@/Components/Modal.vue';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import DataTable from '@/Components/DataTable.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatisticsCard from '@/Components/StatisticsCard.vue';
@@ -112,7 +125,8 @@ import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { Calendar } from '@/Components/ui/calendar';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BIconThreeDotsVertical } from 'bootstrap-icons-vue';
+import { BIconThreeDotsVertical, BIconPlus } from 'bootstrap-icons-vue';
+import { ScrollArea } from '@/Components/ui/scroll-area'
 import { 
   Popover, 
   PopoverContent, 
@@ -148,7 +162,6 @@ export default {
   },
   components: {
     AuthenticatedLayout,
-    Modal,
     DataTable,
     Pagination,
     StatisticsCard,
@@ -170,11 +183,18 @@ export default {
     SelectTrigger,
     SelectValue,
     Calendar,
-    CalendarIcon,
-    BIconThreeDotsVertical,
     Popover,
     PopoverContent,
     PopoverTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    ScrollArea,
+    BIconPlus
   },
   emits: ['update:modelValue'],
   computed: {
@@ -427,7 +447,7 @@ export default {
       },
       {
         accessorKey: 'tindakan',
-        header: () => h('div', {}, 'Tindakan'),
+        header: 'Tindakan',
         cell: ({ row }) => h('div', {}, [
           h(DropdownMenu, {}, {
             default: () => [
