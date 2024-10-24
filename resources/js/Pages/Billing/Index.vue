@@ -214,7 +214,6 @@ export default {
   },
   data() {
     return {
-      showModal: false,
       formData: {},
       formJenis: '',
       formNama_web: '',
@@ -271,7 +270,6 @@ export default {
     submit() {
       // Logika untuk mengirim data form
       console.log('Data form:', this.formData);
-      this.showModal = false;
     },
     searchData() {
       const startDate = this.queryDate[0] || '';

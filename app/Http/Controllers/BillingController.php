@@ -97,4 +97,7 @@ class BillingController extends Controller
             'qdirection' => $sortDirection
         ]);
     }
+
+    // buat untuk simpan data
+    public function store(Request $request) {}
 }
