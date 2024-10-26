@@ -11,11 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('tb_paket')) {
+            Schema::drop('tb_paket');
+        }
         Schema::create('tb_paket', function (Blueprint $table) {
             $table->id();
             $table->string('id_paket');
+            $table->string('id_jenis')->nullable();
             $table->string('paket');
-            $table->string('bobot');
+            $table->string('bobot')->nullable();
             $table->timestamps();
         });
     }

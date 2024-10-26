@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('tb_server')) {
+            Schema::drop('tb_server');
+        }
         Schema::create('tb_server', function (Blueprint $table) {
             $table->id();
             $table->string('id_server');

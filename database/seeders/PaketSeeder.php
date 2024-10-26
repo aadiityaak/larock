@@ -16,7 +16,7 @@ class PaketSeeder extends Seeder
     {
         DB::table('tb_paket')->insert([
             ['id_paket' => 4, 'id_jenis' => 8, 'paket' => 'Paket E', 'bobot' => 30],
-            ['id_paket' => 0, 'paket' => '-', 'bobot' => 100],
+            ['id_paket' => 0, 'id_jenis' => 0, 'paket' => '-', 'bobot' => 100],
             ['id_paket' => 5, 'id_jenis' => 8, 'paket' => 'Paket F', 'bobot' => 50],
             ['id_paket' => 6, 'id_jenis' => 8, 'paket' => 'Paket G', 'bobot' => 100],
             ['id_paket' => 7, 'id_jenis' => 8, 'paket' => 'Paket Toko Online Biasa', 'bobot' => 30],
@@ -39,10 +39,10 @@ class PaketSeeder extends Seeder
             ['id_paket' => 27, 'id_jenis' => 8, 'paket' => 'Paket Landing Page Custom', 'bobot' => 100],
             ['id_paket' => 28, 'id_jenis' => 8, 'paket' => 'Paket Radio Streaming Custom', 'bobot' => 100],
             ['id_paket' => 29, 'id_jenis' => 8, 'paket' => 'Paket Forum Biasa', 'bobot' => 100],
-            ['id_paket' => 30, 'paket' => 'Lain - Lain', 'bobot' => 0],
-            ['id_paket' => 32, 'paket' => 'Domain', 'bobot' => 0],
-            ['id_paket' => 33, 'paket' => 'Hosting', 'bobot' => 0],
-            ['id_paket' => 3, 'paket' => '-', 'bobot' => null],
+            ['id_paket' => 30, 'id_jenis' => 0, 'paket' => 'Lain - Lain', 'bobot' => 0],
+            ['id_paket' => 32, 'id_jenis' => 0, 'paket' => 'Domain', 'bobot' => 0],
+            ['id_paket' => 33, 'id_jenis' => 0, 'paket' => 'Hosting', 'bobot' => 0],
+            ['id_paket' => 3, 'id_jenis' => 0, 'paket' => '-', 'bobot' => null],
             ['id_paket' => 35, 'id_jenis' => 8, 'paket' => 'Paket Lelang Custom', 'bobot' => 100],
             ['id_paket' => 36, 'id_jenis' => 8, 'paket' => 'Paket PPOB', 'bobot' => 100],
             ['id_paket' => 31, 'id_jenis' => 8, 'paket' => 'Paket Loker Custom', 'bobot' => 0],
